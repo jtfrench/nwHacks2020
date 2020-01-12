@@ -20,8 +20,6 @@
   int detectedDuration = 100; // the amount of time that button/buzzer/light is on for
   int detectedDelay = 200;  // the amount of time before another contraction can be detected
 
-
-
 // variables for calcThresholds /////
   float N = 15; // abitrary value used to change deviation of high and low thresholds
   float low_thresh = 0;
@@ -62,6 +60,8 @@ void setup()
  Serial.begin(9600);
  //Serial.println("Grove - Sound Sensor Test...");
 
+  pinMode(buzzerOutput, OUTPUT);
+
   // Intialize acceleration values
   accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
   prevAX = ax;
@@ -81,7 +81,10 @@ void loop()
 
    // Serial print accel values
     accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
+    delay(5);
+    accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
     updateAccels();
+   /*
     Serial.println(ax);
     Serial.println(prevAX);
     Serial.println(ay);
@@ -89,13 +92,13 @@ void loop()
     Serial.println(az);
     Serial.println(prevAZ);
     Serial.println("*******");
-
+*/
   // Detection shit
     detect();
 
  
 
-/*
+
   // Serial print sound values
     Serial.print(average);
     Serial.print(",");
@@ -104,7 +107,7 @@ void loop()
     Serial.print(high_thresh);
     Serial.print(",");
     Serial.println(mean);
-*/
+
     delay(10);
 }
 
@@ -205,8 +208,8 @@ void standardDev() {
  *  uses mean, standard deviation and sensitivity (N)
  */
 void calcThresholds(){
-  low_thresh = mean - (N * (sd+0.1))-300;
-  high_thresh = mean + (N * (sd+0.1))+300;
+  low_thresh = mean - (N * (sd+0.1));
+  high_thresh = mean + (N * (sd+0.1));
 }
 
 /* stopSignaling:
@@ -242,7 +245,7 @@ void updateAccels(){
 
   accelUpdateCount++;
   
-  if(accelUpdateCount == 100) {
+  if(accelUpdateCount >= 100) {
       prevAX = ax;
       prevAY = ay;
       prevAZ = az;
@@ -259,14 +262,26 @@ bool checkVals(){
   if(average < (low_thresh - 1))
     return true;
   
-  if(ax > (prevAX+0.5) || ax < (prevAX-0.5))
-    return true;
+  if(ax > (prevAX+0.5) || ax < (prevAX-0.5)) {
+    accelemeter.getAcceleration(&ax,&ay,&az);
+    if(ax > (prevAX+0.5) || ax < (prevAX-0.5)){
+      return true;
+    }
+  }
   
-  if(ay > (prevAY+0.5) || ay < (prevAY-0.5))
-    return true;
+  if(ay > (prevAY+0.5) || ay < (prevAY-0.5)) {
+    accelemeter.getAcceleration(&ax,&ay,&az);
+    if(ay > (prevAY+0.5) || ay < (prevAY-0.5)){
+      return true;
+    }
+  }
 
-  if(az > (prevAZ+0.5) || az < (prevAZ-0.5))
-    return true;
+  if(az > (prevAZ+0.5) || az < (prevAZ-0.5)) {
+    accelemeter.getAcceleration(&ax,&ay,&az);
+    if(az > (prevAZ+0.5) || az < (prevAZ-0.5)){
+      return true;
+    }
+  }
 
   else 
     return false;
