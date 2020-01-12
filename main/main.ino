@@ -10,6 +10,8 @@
 // variables for getAccels 
   float ax,ay,az; // variables to hold the accelerations
   float prevAX, prevAY, prevAZ; // previous acceleration values to compare against
+  bool accelUpdate = false;
+  int accelUpdateCount = 0;
 
 // variables for detection////
   #define buzzerOutput 8
@@ -72,28 +74,28 @@ void setup()
 void loop()
 {
 
-    
-    Serial.println("accleration of X/Y/Z: ");
-    Serial.print(ax);
-    Serial.println(" g");
-    Serial.print(ay);
-    Serial.println(" g");
-    Serial.print(az);
-    Serial.println(" g");
-    Serial.println("*************");
-    delay(500);
-
   // Sound Sensor shit
     smoothSignal();
     standardDev();
     calcThresholds();
 
-  // Accelemeter shit
-    checkAccels();
+   // Serial print accel values
+    accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
+    updateAccels();
+    Serial.println(ax);
+    Serial.println(prevAX);
+    Serial.println(ay);
+    Serial.println(prevAY);
+    Serial.println(az);
+    Serial.println(prevAZ);
+    Serial.println("*******");
 
   // Detection shit
     detect();
 
+ 
+
+/*
   // Serial print sound values
     Serial.print(average);
     Serial.print(",");
@@ -102,7 +104,7 @@ void loop()
     Serial.print(high_thresh);
     Serial.print(",");
     Serial.println(mean);
-
+*/
     delay(10);
 }
 
@@ -203,8 +205,8 @@ void standardDev() {
  *  uses mean, standard deviation and sensitivity (N)
  */
 void calcThresholds(){
-  low_thresh = mean - (N * (sd+0.1));
-  high_thresh = mean + (N * (sd+0.1));
+  low_thresh = mean - (N * (sd+0.1))-300;
+  high_thresh = mean + (N * (sd+0.1))+300;
 }
 
 /* stopSignaling:
@@ -217,7 +219,7 @@ void stopSignaling(){
 void detect(){
     
     if (!detected) {
-      if(average > high_thresh || average < (low_thresh - 1) || ax > (prevAX+0.5) || ay > (prevAY+0.5) || az > (prevAZ+0.5)) {
+      if(checkVals() == true) {
         detected = true;
         digitalWrite(buzzerOutput, HIGH);
       }
@@ -236,8 +238,37 @@ void detect(){
     }
 }
 
-void checkAccels(){
-    
-    accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
+void updateAccels(){
+
+  accelUpdateCount++;
+  
+  if(accelUpdateCount == 100) {
+      prevAX = ax;
+      prevAY = ay;
+      prevAZ = az;
+      accelUpdateCount = 0;
+  }
+
+}
+
+bool checkVals(){
+
+  if(average > high_thresh)
+    return true;
+  
+  if(average < (low_thresh - 1))
+    return true;
+  
+  if(ax > (prevAX+0.5) || ax < (prevAX-0.5))
+    return true;
+  
+  if(ay > (prevAY+0.5) || ay < (prevAY-0.5))
+    return true;
+
+  if(az > (prevAZ+0.5) || az < (prevAZ-0.5))
+    return true;
+
+  else 
+    return false;
 
 }
