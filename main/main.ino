@@ -7,6 +7,10 @@
   #include "MMA7660.h"
   MMA7660 accelemeter;
 
+// variables for getAccels 
+  float ax,ay,az; // variables to hold the accelerations
+  float prevAX, prevAY, prevAZ; // previous acceleration values to compare against
+
 // variables for detection////
   #define buzzerOutput 8
   boolean detected = false;
@@ -15,8 +19,9 @@
   int detectedDelay = 200;  // the amount of time before another contraction can be detected
 
 
+
 // variables for calcThresholds /////
-  float N = 15;
+  float N = 15; // abitrary value used to change deviation of high and low thresholds
   float low_thresh = 0;
   float high_thresh = 0;
 
@@ -54,27 +59,21 @@ void setup()
  accelemeter.init();  
  Serial.begin(9600);
  //Serial.println("Grove - Sound Sensor Test...");
+
+  // Intialize acceleration values
+  accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
+  prevAX = ax;
+  prevAY = ay;
+  prevAZ = az;
+  
+ 
 }
 
 void loop()
 {
-  /*
-  // Accelerometer shit
-    int8_t x;
-    int8_t y;
-    int8_t z;
-    float ax,ay,az;
-    accelemeter.getXYZ(&x,&y,&z);
+
     
-    Serial.print("x = ");
-      Serial.println(x); 
-      Serial.print("y = ");
-      Serial.println(y);   
-      Serial.print("z = ");
-      Serial.println(z);
-    
-    accelemeter.getAcceleration(&ax,&ay,&az);
-      Serial.println("accleration of X/Y/Z: ");
+    Serial.println("accleration of X/Y/Z: ");
     Serial.print(ax);
     Serial.println(" g");
     Serial.print(ay);
@@ -83,13 +82,19 @@ void loop()
     Serial.println(" g");
     Serial.println("*************");
     delay(500);
-*/
 
   // Sound Sensor shit
     smoothSignal();
     standardDev();
     calcThresholds();
+
+  // Accelemeter shit
+    checkAccels();
+
+  // Detection shit
     detect();
+
+  // Serial print sound values
     Serial.print(average);
     Serial.print(",");
     Serial.print(low_thresh);
@@ -97,6 +102,7 @@ void loop()
     Serial.print(high_thresh);
     Serial.print(",");
     Serial.println(mean);
+
     delay(10);
 }
 
@@ -211,7 +217,7 @@ void stopSignaling(){
 void detect(){
     
     if (!detected) {
-      if(average > high_thresh || average < (low_thresh - 1)) {
+      if(average > high_thresh || average < (low_thresh - 1) || ax > (prevAX+0.5) || ay > (prevAY+0.5) || az > (prevAZ+0.5)) {
         detected = true;
         digitalWrite(buzzerOutput, HIGH);
       }
@@ -228,4 +234,10 @@ void detect(){
         detectedCount = 0;
         detected = false;
     }
+}
+
+void checkAccels(){
+    
+    accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
+
 }
