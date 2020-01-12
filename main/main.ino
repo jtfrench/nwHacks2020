@@ -14,7 +14,7 @@
   int accelUpdateCount = 0;
 
 // variables for detection////
-  #define buzzerOutput 8
+  #define buzzerOutput 7
   boolean detected = false;
   int detectedCount = 0;
   int detectedDuration = 100; // the amount of time that button/buzzer/light is on for
