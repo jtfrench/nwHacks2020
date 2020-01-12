@@ -84,7 +84,7 @@ void loop()
     delay(5);
     accelemeter.getAcceleration(&ax,&ay,&az); // get accel values
     updateAccels();
-   
+   /*
     Serial.println(ax);
     Serial.println(prevAX);
     Serial.println(ay);
@@ -92,13 +92,12 @@ void loop()
     Serial.println(az);
     Serial.println(prevAZ);
     Serial.println("*******");
-
+*/
   // Detection shit
     detect();
 
  
 
-/*
   // Serial print sound values
     Serial.print(average);
     Serial.print(",");
@@ -107,7 +106,7 @@ void loop()
     Serial.print(high_thresh);
     Serial.print(",");
     Serial.println(mean);
-*/
+
     delay(10);
 }
 
@@ -208,8 +207,8 @@ void standardDev() {
  *  uses mean, standard deviation and sensitivity (N)
  */
 void calcThresholds(){
-  low_thresh = mean - (N*(sd+0.1)+300);
-  high_thresh = mean + (N*(sd+0.1)+300);
+  low_thresh = mean - (N*(sd+0.2));
+  high_thresh = mean + (N*(sd+0.2));
 }
 
 /* stopSignaling:
